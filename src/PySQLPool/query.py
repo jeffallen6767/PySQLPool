@@ -136,15 +136,13 @@ class PySQLQuery(object):
 				cursor = self.conn.getCursor()
 				self.affectedRows = cursor.execute(query, args)
 				self.conn.updateCheckTime()
-				while 1:
+				def stream_gen():
 					row = cursor.fetchone()
-					if row is None:
-						break
-					else:
-						self.record = row
+					while row:
 						yield row
-						
+						row = cursor.fetchone()
 				self.rowcount = cursor.rowcount
+				self.record = stream_gen
 			except Exception, e:
 				self.lastError = e
 				self.affectedRows = None
